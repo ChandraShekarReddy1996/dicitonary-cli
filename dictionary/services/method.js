@@ -2,11 +2,13 @@ const readline = require('readline')
 const request = require('request-promise')
 const config = require('../config/sample.json')
 
+//read line interface to maintainf interaction for Q & A
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   })
 
+//central function for the dictionary and router
 let index = (type,word) => {
 
     switch(type){
@@ -37,6 +39,7 @@ let index = (type,word) => {
     }
 }
 
+//to send and receive http requests
 let getData = async (url) => {
     let request_params = {
         url : url,
@@ -48,6 +51,7 @@ let getData = async (url) => {
     return JSON.parse(request_output);
 }
 
+//definitions
 let definitions = async (word) => {
     let url = config.host + `/word/${word}/definitions?api_key=` + config.key;
 
@@ -58,6 +62,7 @@ let definitions = async (word) => {
     return Promise.resolve();
 }
 
+//synonyms
 let synonyms = async (word) => {
     let url = config.host + `/word/${word}/relatedWords?api_key=` + config.key;
 
@@ -69,6 +74,7 @@ let synonyms = async (word) => {
     return Promise.resolve();
 }
 
+//antonyms
 let antonyms = async (word) => {
     let url = config.host + `/word/${word}/relatedWords?api_key=` + config.key;
 
@@ -80,6 +86,7 @@ let antonyms = async (word) => {
     return Promise.resolve();
 }
 
+//examples
 let examples = async (word) => {
     let url = config.host + `/word/${word}/examples?api_key=` + config.key;
 
@@ -91,11 +98,12 @@ let examples = async (word) => {
 };
 
 
+//word for the day
 let ramdomWord = async () => {
     let url = config.host + `/words/randomWord?api_key=` + config.key;
 
    let random_word =  await getData(url)
-    .catch(err => {console.log('Word Not Found in Dictionary',err)})
+    .catch(err => {console.log('Word Not Found in Dictionary',err)});
 
     await Promise.all([
         definitions(random_word.word),
@@ -107,6 +115,8 @@ let ramdomWord = async () => {
     return Promise.resolve(random_word);
 }
 
+
+// game mode function for Q & A
 let play = async () => {
     let url = config.host + `/words/randomWord?api_key=` + config.key;
 
@@ -118,15 +128,14 @@ let play = async () => {
         synonyms(random_word.word),
         antonyms(random_word.word),
         examples(random_word.word)
-    ])
+    ]);
 
-    playStart(random_word.word)
+    playStart(random_word.word);
 }
 
-
+//Game Play ON Function
 let playStart = async (random_word) => {
     rl.question('Guess the word : ',answer => {
-        console.log(answer === random_word,'  ',answer,'  ',random_word)
         if(answer === random_word){
             console.log('You Guessed right ! ');
             rl.close();
@@ -136,17 +145,17 @@ let playStart = async (random_word) => {
                     console.log('You Guessed right ! ');
                     rl.close();
                 }else{
-                   let hint = jumble(random_word)
+                   let hint = jumble(random_word);
                     rl.question(`Seems Like you need some help. Use the below hint \n ${hint} \n :`,second_attempt => {
                         if(second_attempt === random_word){
                             console.log('You Guessed right ! ');
                             rl.close();
                         }else{
-                            console.log('Max attempts exceeded and the word is ',random_word,'please refer the below info for further details regading the word !')
-                            definitions(random_word)
-                            synonyms(random_word)
-                            antonyms(random_word)
-                            examples(random_word)
+                            console.log('Max attempts exceeded and the word is ',random_word,'please refer the below info for further details regading the word !');
+                            definitions(random_word);
+                            synonyms(random_word);
+                            antonyms(random_word);
+                            examples(random_word);
                         }
                     })
                 }
@@ -155,31 +164,35 @@ let playStart = async (random_word) => {
     })
 }
   
+
+//To Jumble the letters of a word as a hint
 let jumble = (word) => {
-    word = word.split('')
-    for (var i = word.length - 1; i >= 0; i--) {
-      var rand = Math.floor(Math.random() * i)
-      var temp = word[i]
-      word[i] = word[rand]
-      word[rand] = temp
+    word = word.split('');
+    for (let i = word.length - 1; i >= 0; i--) {
+      let rand = Math.floor(Math.random() * i);
+      let temp = word[i];
+      word[i] = word[rand];
+      word[rand] = temp;
     }
-    word = word.join('')
-    return word
+    word = word.join('');
+    return word;
   }
 
+//filter function
 let processData = async (response,type) => {
     if(type == 'syn')
       response = response.filter(function (pilot) {
         return pilot.relationshipType === "synonym";
-      })
+      });
     else if(type == 'ant')
       response = response.filter(function (pilot) {
         return pilot.relationshipType === "antonym";
-      })
+      });
 
-    return Promise.resolve((response.length != 0) ? response[0].words : 'No Antonym for this word') 
+    return Promise.resolve((response.length != 0) ? response[0].words : 'No Antonym for this word');
 }
 
+//export function
 module.exports = {
     index
 }
