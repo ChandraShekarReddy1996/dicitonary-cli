@@ -5,7 +5,7 @@ const config = require('./config/sample.json')
 const type = process.argv[2]
 const word = process.argv[3]
 
-console.log('Type >>>>> ',type,'Word >>>>>',word)
+console.log('Type >>>>> ',typeof(type),'Word >>>>>',word)
 
 
 if(config.key == 'undefined')
